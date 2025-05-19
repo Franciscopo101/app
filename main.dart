@@ -13,116 +13,40 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   // Inicializar Hive para almacenamiento local
-  final appDocumentDirectory = await getApplicationDocumentsDirectory();
-  await Hive.initFlutter(appDocumentDirectory.path);
+  final appDocumentDir = await getApplicationDocumentsDirectory();
+  await Hive.initFlutter(appDocumentDir.path);
   
-  // Registrar adaptadores para nuestros modelos
+  // Registrar adaptadores para los modelos
   Hive.registerAdapter(EmpresaAdapter());
   Hive.registerAdapter(ClienteAdapter());
   Hive.registerAdapter(CotizacionAdapter());
   Hive.registerAdapter(ItemAdapter());
   
-  // Abrir boxes (colecciones)
+  // Abrir las cajas (boxes) de Hive
   await Hive.openBox<Empresa>('empresa');
   await Hive.openBox<Cliente>('clientes');
   await Hive.openBox<Cotizacion>('cotizaciones');
   await Hive.openBox<Item>('items');
   
-  // Inicializar servicio de base de datos
-  final databaseService = DatabaseService();
-  
-  // Verificar si hay datos de empresa, si no, crear configuración por defecto
-  await databaseService.initializeEmpresaIfNeeded();
-  
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => databaseService),
-      ],
-      child: const CotizacionesApp(),
-    ),
-  );
+  runApp(const MyApp());
 }
 
-class CotizacionesApp extends StatelessWidget {
-  const CotizacionesApp({Key? key}) : super(key: key);
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Cotizaciones App',
-      theme: ThemeData(
-        primaryColor: const Color(0xFF2E5BFF),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF2E5BFF),
-          secondary: const Color(0xFFFF6B2E),
-          background: const Color(0xFFF5F7FA),
+    return ChangeNotifierProvider(
+      create: (context) => DatabaseService(),
+      child: MaterialApp(
+        title: 'Cotizaciones App',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+          visualDensity: VisualDensity.adaptivePlatformDensity,
         ),
-        scaffoldBackgroundColor: const Color(0xFFF5F7FA),
-        textTheme: const TextTheme(
-          displayLarge: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF1A2138),
-          ),
-          displayMedium: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF1A2138),
-          ),
-          displaySmall: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF1A2138),
-          ),
-          bodyLarge: TextStyle(
-            fontSize: 14,
-            color: Color(0xFF1A2138),
-          ),
-          bodyMedium: TextStyle(
-            fontSize: 14,
-            color: Color(0xFF8798AD),
-          ),
-        ),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF2E5BFF),
-          foregroundColor: Colors.white,
-          elevation: 0,
-        ),
-        floatingActionButtonTheme: const FloatingActionButtonThemeData(
-          backgroundColor: Color(0xFF2E5BFF),
-          foregroundColor: Colors.white,
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: Color(0xFFD8DCE2)),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: Color(0xFFD8DCE2)),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: Color(0xFF2E5BFF)),
-          ),
-          errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: Color(0xFFD63649)),
-          ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          filled: true,
-          fillColor: Colors.white,
-        ),
-        cardTheme: CardTheme(
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          color: Colors.white,
-        ),
+        home: const HomeScreen(),
+        debugShowCheckedModeBanner: false,
       ),
-      home: const HomeScreen(),
     );
   }
 }
