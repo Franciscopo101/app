@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte de Cotización {{ cotizacion.numero_cotizacion }}</title>
+    <style>
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            font-size: 10pt;
+            color: #333;
+            margin: 20px;
+        }
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #000;
+        }
+        .empresa-info {
+            text-align: left;
+        }
+        .empresa-info h1 {
+            margin: 0; font-size: 18pt; color: #000;
+        }
+        .empresa-info p { margin: 2px 0; font-size: 9pt; }
+        .document-info {
+            text-align: right;
+        }
+        .document-info h2 {
+            margin: 0; font-size: 16pt; color: #cc0000;
+            border: 2px solid #cc0000;
+            padding: 5px 10px;
+        }
+        .document-info p { margin: 2px 0; font-size: 9pt; }
+        .logo {
+            max-width: 120px;
+            max-height: 60px;
+            margin-bottom: 10px;
+        }
+        h2.section-title {
+            font-size: 14pt;
+            color: #333;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+            font-size: 9pt;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 6px;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        .totals-table td:first-child { font-weight: bold; }
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+            background-color: #f9f9f9;
+            padding: 10px;
+            border: 1px solid #eee;
+        }
+        .details-grid div p { margin: 3px 0; }
+        .details-grid strong { color: #555; }
+        .footer {
+            width: 100%;
+            text-align: center;
+            font-size: 8pt;
+            color: #777;
+            position: fixed;
+            bottom: 10px;
+            left: 0;
+        }
+        .item-description { max-width: 300px; word-wrap: break-word; }
+        .currency:before { content: "$"; }
+    </style>
+</head>
+<body>
+    <div class="header-container">
+        <div class="empresa-info">
+            {% if empresa and empresa.logo_url %}
+                <img src="{{ empresa.logo_url }}" alt="Logo Empresa" class="logo">
+            {% endif %}
+            <h1>{{ empresa.nombre_empresa if empresa else 'Nombre de Empresa' }}</h1>
+            <p>{{ empresa.rut_empresa if empresa }}</p>
+            <p>{{ empresa.direccion_empresa if empresa }}</p>
+            <p>Email: {{ empresa.email_empresa if empresa }} | Tel: {{ empresa.telefono_empresa if empresa }}</p>
+            <p>Giro: {{ empresa.giro_empresa if empresa }}</p>
+        </div>
+        <div class="document-info">
+            <h2>REPORTE PROYECTO</h2>
+            <p><strong>Número Cotización:</strong> {{ cotizacion.numero_cotizacion }}</p>
+            <p><strong>Fecha Emisión Cot.:</strong> {{ cotizacion.fecha_emision.strftime('%d-%m-%Y') if cotizacion.fecha_emision }}</p>
+            <p><strong>Fecha Generación Reporte:</strong> {{ fecha_generacion.strftime('%d-%m-%Y %H:%M') }}</p>
+        </div>
+    </div>
+
+    <h2 class="section-title">Información del Cliente</h2>
+    <div class="details-grid">
+        <div>
+            <p><strong>Nombre/Razón Social:</strong> {{ cliente.nombre_razon_social if cliente }}</p>
+            <p><strong>RUT:</strong> {{ cliente.rut_cliente if cliente }}</p>
+            <p><strong>Giro:</strong> {{ cliente.giro_cliente if cliente }}</p>
+        </div>
+        <div>
+            <p><strong>Dirección:</strong> {{ cliente.direccion_calle_numero if cliente }}{% if cliente.comuna %}, {{ cliente.comuna }}{% endif %}{% if cliente.ciudad %}, {{ cliente.ciudad }}{% endif %}</p>
+            <p><strong>Email:</strong> {{ cliente.email_cliente if cliente }}</p>
+            <p><strong>Teléfono:</strong> {{ cliente.telefono_cliente if cliente }}</p>
+            <p><strong>Contacto:</strong> {{ cliente.nombre_contacto if cliente }}</p>
+        </div>
+    </div>
+
+    <h2 class="section-title">Detalles de la Cotización</h2>
+    <div class="details-grid">
+        <div>
+            <p><strong>Título/Asunto:</strong> {{ cotizacion.titulo_asunto }}</p>
+            <p><strong>Estado Actual:</strong> {{ cotizacion.estado.value }}</p>
+            <p><strong>Creado por:</strong> {{ cotizacion.usuario_creador.nombre_usuario if cotizacion.usuario_creador }}</p>
+        </div>
+        <div>
+            <p><strong>Forma de Pago:</strong> {{ cotizacion.forma_pago_descripcion }}</p>
+            <p><strong>Tiempo de Entrega Estimado:</strong> {{ cotizacion.tiempo_entrega_estimado }}</p>
+            <p><strong>Validez Oferta:</strong> {{ cotizacion.validez_oferta_descripcion }}</p>
+        </div>
+    </div>
+    {% if cotizacion.notas_adicionales %}
+        <p><strong>Notas Adicionales Cotización:</strong> {{ cotizacion.notas_adicionales }}</p>
+    {% endif %}
+
+    <h2 class="section-title">Ítems de la Cotización</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Código</th>
+                <th>Descripción</th>
+                <th>Und.</th>
+                <th class="text-right">Cantidad</th>
+                <th class="text-right">P. Unitario</th>
+                <th class="text-right">Desc. %</th>
+                <th class="text-right">Total Ítem</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{ item.codigo_item }}</td>
+                <td class="item-description">{{ item.descripcion_item }}</td>
+                <td>{{ item.unidad_medida }}</td>
+                <td class="text-right">{{ "%.2f"|format(item.cantidad|float) }}</td>
+                <td class="text-right currency">{{ "%.0f"|format(item.precio_unitario|float) }}</td>
+                <td class="text-right">{{ "%.2f"|format(item.descuento_item_porcentaje|float) }}%</td>
+                <td class="text-right currency">{{ "%.0f"|format(item.valor_total_item|float) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <table class="totals-table" style="width: 40%; margin-left: 60%;">
+        <tr>
+            <td>Subtotal Neto:</td>
+            <td class="text-right currency">{{ "%.0f"|format(cotizacion.subtotal_neto|float) }}</td>
+        </tr>
+        <tr>
+            <td>Descuento General ({{ "%.2f"|format(cotizacion.descuento_general_porcentaje|float) }}%):</td>
+            <td class="text-right currency">{{ "%.0f"|format(cotizacion.monto_descuento_general|float) }}</td>
+        </tr>
+        <tr>
+            <td>Monto Neto Final:</td>
+            <td class="text-right currency">{{ "%.0f"|format(cotizacion.monto_neto_final|float) }}</td>
+        </tr>
+        <tr>
+            <td>IVA ({{ empresa.iva_porcentaje if empresa else '19' }}%):</td>
+            <td class="text-right currency">{{ "%.0f"|format(cotizacion.monto_iva|float) }}</td>
+        </tr>
+        <tr>
+            <td><strong>TOTAL COTIZACIÓN:</strong></td>
+            <td class="text-right currency"><strong>{{ "%.0f"|format(cotizacion.monto_total_cotizacion|float) }}</strong></td>
+        </tr>
+    </table>
+
+    {% if pagos %}
+    <h2 class="section-title">Historial de Pagos del Cliente</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Fecha Pago</th>
+                <th>Monto Pagado</th>
+                <th>Método</th>
+                <th>Referencia</th>
+                <th>Notas</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pago in pagos %}
+            <tr>
+                <td>{{ pago.fecha_pago.strftime('%d-%m-%Y') if pago.fecha_pago }}</td>
+                <td class="text-right currency">{{ "%.0f"|format(pago.monto_pagado|float) }}</td>
+                <td>{{ pago.metodo_pago }}</td>
+                <td>{{ pago.referencia_pago }}</td>
+                <td>{{ pago.notas }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    {% if proyecto %}
+    <h2 class="section-title">Información del Proyecto</h2>
+    <div class="details-grid">
+        <div>
+            <p><strong>Nombre Proyecto:</strong> {{ proyecto.nombre_proyecto }}</p>
+            <p><strong>Estado Proyecto:</strong> {{ proyecto.estado_proyecto.value }}</p>
+            <p><strong>Técnico Asignado:</strong> {{ proyecto.tecnico_asignado.nombre_usuario if proyecto.tecnico_asignado else 'N/A' }}</p>
+        </div>
+        <div>
+            <p><strong>Fecha Inicio Planificada:</strong> {{ proyecto.fecha_inicio_planificada.strftime('%d-%m-%Y') if proyecto.fecha_inicio_planificada }}</p>
+            <p><strong>Fecha Fin Planificada:</strong> {{ proyecto.fecha_fin_planificada.strftime('%d-%m-%Y') if proyecto.fecha_fin_planificada }}</p>
+            <p><strong>Fecha Inicio Real:</strong> {{ proyecto.fecha_inicio_real.strftime('%d-%m-%Y') if proyecto.fecha_inicio_real }}</p>
+            <p><strong>Fecha Fin Real:</strong> {{ proyecto.fecha_fin_real.strftime('%d-%m-%Y') if proyecto.fecha_fin_real }}</p>
+        </div>
+    </div>
+    
+        <h3 class="section-title" style="font-size:11pt; margin-top:15px;">Presupuesto vs. Gastos Reales del Proyecto</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Concepto</th>
+                    <th class="text-right">Estimado</th>
+                    <th class="text-right">Real</th>
+                    <th class="text-right">Diferencia</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Costo Equipos/Materiales</td>
+                    <td class="text-right currency">{{ "%.0f"|format(proyecto.presupuesto_costo_equipos_estimado|float) }}</td>
+                    <td class="text-right currency">{{ "%.0f"|format(proyecto.costo_equipos_real|float) }}</td>
+                    <td class="text-right currency">{{ "%.0f"|format((proyecto.presupuesto_costo_equipos_estimado - proyecto.costo_equipos_real)|float ) }}</td>
+                </tr>
+                <tr>
+                    <td>Costo Mano de Obra</td>
+                    <td class="text-right currency">{{ "%.0f"|format(proyecto.presupuesto_costo_mano_obra_estimado|float) }}</td>
+                    <td class="text-right currency">{{ "%.0f"|format(proyecto.costo_mano_obra_real|float) }}</td>
+                    <td class="text-right currency">{{ "%.0f"|format((proyecto.presupuesto_costo_mano_obra_estimado - proyecto.costo_mano_obra_real)|float) }}</td>
+                </tr>
+                <tr>
+                    <td>Otros Gastos</td>
+                    <td class="text-right currency">{{ "%.0f"|format(proyecto.presupuesto_otros_gastos_estimado|float) }}</td>
+                    <td class="text-right currency">{{ "%.0f"|format(proyecto.costo_otros_gastos_real|float) }}</td>
+                    <td class="text-right currency">{{ "%.0f"|format((proyecto.presupuesto_otros_gastos_estimado - proyecto.costo_otros_gastos_real)|float) }}</td>
+                </tr>
+                <tr>
+                    <td><strong>TOTAL COSTOS PROYECTO</strong></td>
+                    <td class="text-right currency"><strong>{{ "%.0f"|format(proyecto.presupuesto_total_estimado|float) }}</strong></td>
+                    <td class="text-right currency"><strong>{{ "%.0f"|format(proyecto.costo_total_real|float) }}</strong></td>
+                    <td class="text-right currency"><strong>{{ "%.0f"|format((proyecto.presupuesto_total_estimado - proyecto.costo_total_real)|float) }}</strong></td>
+                </tr>
+            </tbody>
+        </table>
+
+        {% if gastos_proyecto %}
+        <h3 class="section-title" style="font-size:11pt; margin-top:15px;">Detalle de Gastos del Proyecto</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Descripción</th>
+                    <th>Tipo</th>
+                    <th class="text-right">Monto</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for gasto in gastos_proyecto %}
+                <tr>
+                    <td>{{ gasto.fecha_gasto.strftime('%d-%m-%Y') if gasto.fecha_gasto }}</td>
+                    <td>{{ gasto.descripcion_gasto }}</td>
+                    <td>{{ gasto.tipo_gasto.value }}</td>
+                    <td class="text-right currency">{{ "%.0f"|format(gasto.monto_gasto|float) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    {% else %}
+        <p>Este proyecto aún no ha sido formalmente iniciado o no tiene detalles de ejecución registrados.</p>
+    {% endif %}
+
+    <div class="footer">
+        <p>Reporte generado por Sistema de Gestión Empresarial | {{ fecha_generacion.strftime('%d-%m-%Y %H:%M:%S') }}</p>
+    </div>
+</body>
+</html>
+
